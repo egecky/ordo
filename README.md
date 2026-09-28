@@ -1,16 +1,49 @@
-# ORDO Experiment Code
+# ORDO: Stochastic-Dominance-Driven Policy Optimization
 
-This directory contains the ORDO implementation and the scripts used for the
-MO-Gym experiments.
+Code for the paper:
+
+> Ege C. Kaya, Kadierdan Kaheman, Jason M. Cloud, and Abolfazl Hashemi.
+> “Stochastic Dominance Driven First-Order Policy Optimization for
+> Multi-Objective Reinforcement Learning.” UAI 2026.
+
+## Overview
+
+Orthant Dominance Policy Optimization (ORDO) compares policies using
+multivariate, (k)-th-order stochastic dominance in the lower-orthant sense.
+It works with integrated multivariate CDFs and minimizes the candidate policy's
+worst-case dominance violation relative to an incumbent. Under the paper's
+regularity assumptions, the theory gives an ε-almost-non-dominatedness
+certificate within the policy class. The experiments focus on the practically
+relevant second-order case and include Soft-ORDO smoothing for stable
+rollout-based optimization.
+
+The benchmark suite uses two-objective variants of DeepSeaTreasure,
+FruitTree, MountainCar, Hopper, and HalfCheetah from MO-Gymnasium. The
+benchmark implementation combines ORDO with PPO in some settings. As noted in
+the paper, this mixed PPO-ORDO update is an empirical recipe and is **not**
+covered by the theorem for the pure ORDO update.
 
 ## Setup
 
+Python 3.10 or newer is recommended. From the repository root:
+
 ```bash
-pip install -r requirements.txt
-export PYTHONPATH="$PWD:${PYTHONPATH:-}"
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+export PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"
 ```
 
-## Single Run
+The continuous-control Hopper and HalfCheetah tasks may require Gymnasium's
+MuJoCo dependencies in your environment:
+
+```bash
+python -m pip install 'gymnasium[mujoco]'
+```
+
+## Single run
+
+Example run on continuous MountainCar:
 
 ```bash
 python scripts/train_ordo.py \
@@ -29,23 +62,28 @@ python scripts/train_ordo.py \
   --run-dir runs/example
 ```
 
-## Portfolio Runs
+The training script exposes additional options for the environment, policy,
+stochastic-dominance order, smoothing, and optimization schedule. Use
+`python scripts/train_ordo.py --help` for the full argument list.
 
-The main launcher prints commands by default. Set `RUN=1` to execute them.
+## Portfolio and ablation runs
+
+The launch scripts print their commands without running them. Set `RUN=1` to
+execute the configured sweep. These are multi-seed, multi-environment
+experiments and can require substantial compute.
 
 ```bash
 bash scripts/run_main_commands.sh
 RUN=1 JOBS=4 GPU_IDS=0,1,2,3 bash scripts/run_main_commands.sh
-```
 
-The ablation launcher has the same interface.
-
-```bash
 bash scripts/run_ablation_commands.sh
-RUN=1 ENV_ID=mo-mountaincarcontinuous-v0 JOBS=4 GPU_IDS=0,1,2,3 bash scripts/run_ablation_commands.sh
+RUN=1 ENV_ID=mo-mountaincarcontinuous-v0 JOBS=4 GPU_IDS=0,1,2,3 \
+  bash scripts/run_ablation_commands.sh
 ```
 
-## Evaluation
+## Evaluation and plots
+
+Evaluate a saved portfolio across replicate runs:
 
 ```bash
 python scripts/evaluate_portfolio_replicates.py \
@@ -56,8 +94,21 @@ python scripts/evaluate_portfolio_replicates.py \
   --out eval/mountaincar.json
 ```
 
-Figure-style return clouds can be regenerated with:
+Plot policy return distributions with:
 
 ```bash
-python scripts/plot_policy_return_distributions.py --policy-root policies --out figures/return_clouds.png
+python scripts/plot_policy_return_distributions.py \
+  --policy-root policies \
+  --out figures/return_clouds.png
+```
+
+## Citation
+
+```bibtex
+@inproceedings{kaya2026ordo,
+  title     = {Stochastic Dominance Driven First-Order Policy Optimization for Multi-Objective Reinforcement Learning},
+  author    = {Kaya, Ege C. and Kaheman, Kadierdan and Cloud, Jason M. and Hashemi, Abolfazl},
+  booktitle = {Proceedings of the Conference on Uncertainty in Artificial Intelligence},
+  year      = {2026}
+}
 ```
