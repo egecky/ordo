@@ -41,6 +41,29 @@ MuJoCo dependencies in your environment:
 python -m pip install 'gymnasium[mujoco]'
 ```
 
+## Quick check
+
+The unit test checks that the smoothed dominance gap is zero for identical
+candidate and reference returns and that its gradient is finite:
+
+```bash
+python -m unittest discover -s tests
+```
+
+To run one short CPU iteration on continuous MountainCar:
+
+```bash
+CUDA_VISIBLE_DEVICES="" python scripts/train_ordo.py \
+  --env mo-mountaincarcontinuous-v0 \
+  --total-iters 1 \
+  --episodes-per-iter 2 \
+  --max-steps 20 \
+  --inner-m-steps 2 \
+  --run-dir runs/smoke
+```
+
+The run writes its configuration and training logs under `runs/smoke/`.
+
 ## Single run
 
 Example run on continuous MountainCar:
